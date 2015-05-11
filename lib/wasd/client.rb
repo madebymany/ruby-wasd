@@ -20,6 +20,15 @@ module Wasd
         Instance.from_ptr service, ptr, @resolver
       end
     end
+
+    def service_instance(description: nil, name: nil, protocol: "tcp", domain: nil)
+      domain ||= @domain or raise "no domain given"
+      raise "no description given" unless description
+      raise "no service name given" unless name
+      raise "nil protocol given" unless protocol
+
+      Instance.new Service.new(name, protocol, domain), description, @resolver
+    end
   end
 
   class Service
