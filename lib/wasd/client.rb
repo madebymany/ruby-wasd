@@ -47,6 +47,13 @@ module Wasd
       "_#{name}._#{protocol}.#{domain}"
     end
 
+    def to_h
+      {
+        name: name,
+        protocol: protocol,
+        domain: domain,
+      }
+    end
   end
 
   class Instance
@@ -105,6 +112,12 @@ module Wasd
       "#{escaped_description}.#{service.dns_name}"
     end
 
+    def to_h
+      {
+        description: description,
+      }.merge(service.to_h)
+    end
+
   protected
 
     def escaped_description
@@ -113,5 +126,15 @@ module Wasd
   end
 
   ResolvedInstance = Struct.new("ResolvedInstance", :instance, :endpoints, :properties)
+
+  class ResolvedInstance
+    def to_h
+      {
+        endpoints: endpoints.map(&:to_h),
+        properties: properties,
+      }.merge(instance.to_h)
+    end
+  end
+
   Endpoint = Struct.new("Endpoint", :host, :port, :priority)
 end
