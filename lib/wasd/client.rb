@@ -128,6 +128,10 @@ module Wasd
   ResolvedInstance = Struct.new("ResolvedInstance", :instance, :endpoints, :properties)
 
   class ResolvedInstance
+    def service
+      instance.service
+    end
+
     def to_h
       {
         endpoints: endpoints.map(&:to_h),
