@@ -9,26 +9,26 @@ module Wasd
       @resolver = Resolv::DNS.new(resolver_config)
     end
 
-    def service_instances(name: nil, protocol: "tcp", domain: nil)
+    def service(name: nil, protocol: "tcp", domain: nil)
       domain ||= @domain or raise "no domain given"
       raise "no service name given" unless name
       raise "nil protocol given" unless protocol
 
-      service = Service.new(name, protocol, domain, self)
-      @resolver.getresources(service.dns_name,
+      Service.new name, protocol, domain, self
+    end
+
+    def service_instances(**opts)
+      s = service(**opts)
+      @resolver.getresources(s.dns_name,
                              Resolv::DNS::Resource::IN::PTR).map do |ptr|
-        Instance.from_ptr service, ptr, @resolver
+        Instance.from_ptr s, ptr, @resolver
       end
     end
 
     def service_instance(description: nil, name: nil, protocol: "tcp", domain: nil)
-      domain ||= @domain or raise "no domain given"
       raise "no description given" unless description
-      raise "no service name given" unless name
-      raise "nil protocol given" unless protocol
 
-      Instance.new Service.new(name, protocol, domain, self), description,
-        @resolver
+      Instance.new service(name: name, protocol: protocol, domain: domain), description, @resolver
     end
   end
 
