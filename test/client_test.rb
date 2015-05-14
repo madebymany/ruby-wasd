@@ -30,4 +30,14 @@ class ClientTest < Test::Unit::TestCase
       assert_equal expected, instance.resolve(@client)
     end
   end
+
+  def test_service_resolution
+    expected = Wasd::ResolvedService.new(@service, [
+      Wasd::Endpoint.new("onlyone.example.com", 8001, 0)
+    ])
+
+    with_test_dns_server do
+      assert_equal expected, @service.resolve(@client)
+    end
+  end
 end

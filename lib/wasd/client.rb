@@ -14,7 +14,7 @@ module Wasd
       raise "no service name given" unless name
       raise "nil protocol given" unless protocol
 
-      service = Service.new(name, protocol, domain)
+      service = Service.new(name, protocol, domain, self)
       @resolver.getresources(service.dns_name,
                              Resolv::DNS::Resource::IN::PTR).map do |ptr|
         Instance.from_ptr service, ptr, @resolver
@@ -27,15 +27,16 @@ module Wasd
       raise "no service name given" unless name
       raise "nil protocol given" unless protocol
 
-      Instance.new Service.new(name, protocol, domain), description, @resolver
+      Instance.new Service.new(name, protocol, domain, self), description,
+        @resolver
     end
   end
 
   class Service
-    attr_reader :name, :protocol, :domain
+    attr_reader :name, :protocol, :domain, :resolver
 
-    def initialize(name, protocol, domain)
-      @name, @protocol, @domain = name, protocol, domain
+    def initialize(name, protocol, domain, resolver = nil)
+      @name, @protocol, @domain, @resolver = name, protocol, domain, resolver
     end
 
     def ==(other)
@@ -53,6 +54,19 @@ module Wasd
         protocol: protocol,
         domain: domain,
       }
+    end
+
+    def resolve(given_resolver = nil)
+      if given_resolver && given_resolver.respond_to?(:resolver)
+        given_resolver = given_resolver.resolver
+      end
+      r = resolver || given_resolver or
+        raise "no resolver given"
+
+      endpoints = EndpointsArray.from_srvs(
+        r.getresources(self.dns_name, Resolv::DNS::Resource::IN::SRV))
+
+      ResolvedService.new(self, endpoints)
     end
   end
 
@@ -101,9 +115,8 @@ module Wasd
         end
       end
 
-      endpoints = r.getresources(self.dns_name, Resolv::DNS::Resource::IN::SRV).map do |rr|
-        Endpoint.new(rr.target.to_s, rr.port, rr.priority)
-      end.sort_by(&:priority).reverse
+      endpoints = EndpointsArray.from_srvs(
+        r.getresources(self.dns_name, Resolv::DNS::Resource::IN::SRV))
 
       ResolvedInstance.new(self, endpoints, properties)
     end
@@ -125,6 +138,8 @@ module Wasd
     end
   end
 
+  ResolvedService = Struct.new("ResolvedService", :service, :endpoints)
+
   ResolvedInstance = Struct.new("ResolvedInstance", :instance, :endpoints, :properties)
 
   class ResolvedInstance
@@ -141,4 +156,24 @@ module Wasd
   end
 
   Endpoint = Struct.new("Endpoint", :host, :port, :priority)
+
+  class Endpoint
+    def self.from_srv(rr)
+      new rr.target.to_s, rr.port, rr.priority
+    end
+  end
+
+  class EndpointsArray < Array
+    def self.from_srvs(rrs)
+      new.tap do |out|
+        rrs.each do |rr|
+          out << Endpoint.from_srv(rr)
+        end
+      end.priority_sort
+    end
+
+    def priority_sort
+      sort_by(&:priority).reverse
+    end
+  end
 end
