@@ -40,4 +40,20 @@ class ClientTest < Test::Unit::TestCase
       assert_equal expected, @service.resolve(@client)
     end
   end
+
+  def test_instance_resolution_failure
+    with_test_dns_server do
+      assert_raises Wasd::NoEndpointsFound do
+        @client.service_instance(description: "asdf", name: "qwer").resolve
+      end
+    end
+  end
+
+  def test_service_resolution_failure
+    with_test_dns_server do
+      assert_raises Wasd::NoEndpointsFound do
+        @client.service(name: "qwer").resolve
+      end
+    end
+  end
 end

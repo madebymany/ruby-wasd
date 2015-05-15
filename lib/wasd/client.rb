@@ -1,6 +1,16 @@
 require 'resolv'
 
 module Wasd
+  class NoEndpointsFound < StandardError
+    def initialize(obj = nil)
+      @obj = obj
+    end
+
+    def message
+      @obj ? "for #{@obj.dns_name}" : super
+    end
+  end
+
   class Client
     attr_reader :resolver
 
@@ -66,6 +76,8 @@ module Wasd
       endpoints = EndpointsArray.from_srvs(
         r.getresources(self.dns_name, Resolv::DNS::Resource::IN::SRV))
 
+      raise NoEndpointsFound.new(self) if endpoints.empty?
+
       ResolvedService.new(self, endpoints)
     end
   end
@@ -97,6 +109,11 @@ module Wasd
       r = resolver || given_resolver or
         raise "no resolver given"
 
+      endpoints = EndpointsArray.from_srvs(
+        r.getresources(self.dns_name, Resolv::DNS::Resource::IN::SRV))
+
+      raise NoEndpointsFound.new(self) if endpoints.empty?
+
       properties = {}
       r.getresources(self.dns_name, Resolv::DNS::Resource::IN::TXT).each do |rr|
         version = DefaultPropertiesVersion
@@ -114,9 +131,6 @@ module Wasd
           properties[version][k] = v
         end
       end
-
-      endpoints = EndpointsArray.from_srvs(
-        r.getresources(self.dns_name, Resolv::DNS::Resource::IN::SRV))
 
       ResolvedInstance.new(self, endpoints, properties)
     end
