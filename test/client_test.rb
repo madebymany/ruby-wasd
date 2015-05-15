@@ -6,7 +6,7 @@ class ClientTest < Test::Unit::TestCase
       domain: "example.com",
       resolver_config: {nameserver_port: [["127.0.0.1", 53534]]}
     )
-    @service = Wasd::Service.new("test", "tcp", "example.com")
+    @service = @client.service(name: "test")
   end
 
   def test_service_instances

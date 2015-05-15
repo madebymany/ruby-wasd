@@ -14,7 +14,7 @@ module Wasd
       raise "no service name given" unless name
       raise "nil protocol given" unless protocol
 
-      Service.new name, protocol, domain, self
+      Service.new name, protocol, domain, @resolver
     end
 
     def service_instances(**opts)
