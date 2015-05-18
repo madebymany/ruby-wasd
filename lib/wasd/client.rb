@@ -19,12 +19,12 @@ module Wasd
       @resolver = Resolv::DNS.new(resolver_config)
     end
 
-    def service(name: nil, protocol: "tcp", domain: nil)
+    def service(subtype: nil, name: nil, protocol: "tcp", domain: nil)
       domain ||= @domain or raise "no domain given"
       raise "no service name given" unless name
       raise "nil protocol given" unless protocol
 
-      Service.new name, protocol, domain, @resolver
+      Service.new name, protocol, domain, subtype, @resolver
     end
 
     def service_instances(**opts)
@@ -35,27 +35,39 @@ module Wasd
       end
     end
 
-    def service_instance(description: nil, name: nil, protocol: "tcp", domain: nil)
+    def service_instance(description: nil, **opts)
       raise "no description given" unless description
 
-      Instance.new service(name: name, protocol: protocol, domain: domain), description, @resolver
+      Instance.new service(**opts), description, @resolver
     end
   end
 
   class Service
-    attr_reader :name, :protocol, :domain, :resolver
+    attr_reader :subtype, :name, :protocol, :domain, :resolver
 
-    def initialize(name, protocol, domain, resolver = nil)
-      @name, @protocol, @domain, @resolver = name, protocol, domain, resolver
+    def initialize(name, protocol, domain, subtype = nil, resolver = nil)
+      @name, @protocol, @domain, @subtype, @resolver = \
+        name, protocol, domain, subtype, resolver
+    end
+
+    def with(subtype: nil, name: nil, protocol: nil, domain: nil, resolver: nil)
+      self.class.new name || @name, protocol || @protocol, domain || @domain,
+        subtype || @subtype, resolver || @resolver
+    end
+
+    def has_subtype?
+      !(subtype.nil? || subtype.empty?)
     end
 
     def ==(other)
       name == other.name && protocol == other.protocol && \
-        domain == other.domain
+        domain == other.domain && subtype == other.subtype
     end
 
     def dns_name
-      "_#{name}._#{protocol}.#{domain}"
+      "_#{name}._#{protocol}.#{domain}".tap do |n|
+        n.prepend "_#{subtype}._sub." if has_subtype?
+      end
     end
 
     def to_h
@@ -63,7 +75,9 @@ module Wasd
         name: name,
         protocol: protocol,
         domain: domain,
-      }
+      }.tap do |h|
+        h[:subtype] = subtype if has_subtype?
+      end
     end
 
     def resolve(given_resolver = nil)

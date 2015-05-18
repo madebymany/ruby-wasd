@@ -41,6 +41,17 @@ class ClientTest < Test::Unit::TestCase
     end
   end
 
+  def test_service_subtype_resolution
+    expected = [
+      Wasd::Instance.new(@service.with(subtype: 'cheese'), "Woop"),
+    ]
+
+    with_test_dns_server do
+      assert_equal expected, @client.service_instances(name: 'test',
+                                                       subtype: 'cheese')
+    end
+  end
+
   def test_instance_resolution_failure
     with_test_dns_server do
       assert_raises Wasd::NoEndpointsFound do
