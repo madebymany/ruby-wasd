@@ -162,7 +162,7 @@ module Wasd
   protected
 
     def escaped_description
-      description.gsub(/([ \.])/, "\\\\\\1")
+      description.to_s.gsub(/([ \.])/, "\\\\\\1")
     end
   end
 
