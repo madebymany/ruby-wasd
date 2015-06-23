@@ -67,4 +67,27 @@ class ClientTest < Test::Unit::TestCase
       end
     end
   end
+
+  def test_endpoint_http_uri
+    tests = [
+      [Wasd::Endpoint.new('example.com', 443), URI("https://example.com")],
+      [Wasd::Endpoint.new('example.com', 80), URI("http://example.com")],
+      [Wasd::Endpoint.new('example.com', 3000), URI("http://example.com:3000")],
+    ]
+
+    tests.each do |endpoint, uri|
+      assert_equal endpoint.to_http_uri, uri
+    end
+
+    tests = [
+      [Wasd::Endpoint.new('example.com', 443), URI("https://example.com")],
+      [Wasd::Endpoint.new('example.com', 80), URI("http://example.com")],
+      [Wasd::Endpoint.new('example.com', 3000), URI("https://example.com:3000")],
+    ]
+
+    tests.each do |endpoint, uri|
+      assert_equal endpoint.to_http_uri(default_to_https: true), uri
+    end
+
+  end
 end

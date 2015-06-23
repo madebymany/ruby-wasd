@@ -1,4 +1,5 @@
 require 'resolv'
+require 'uri'
 
 module Wasd
   class NoEndpointsFound < StandardError
@@ -187,7 +188,15 @@ module Wasd
 
   class Endpoint
     def self.from_srv(rr)
-      new rr.target.to_s, rr.port, rr.priority
+      new rr.target.to_s, rr.port.to_i, rr.priority.to_i
+    end
+
+    def to_http_uri(default_to_https: false)
+      if port == 443 || (default_to_https && port != 80)
+        URI::HTTPS
+      else
+        URI::HTTP
+      end.build host: host, port: port
     end
   end
 
