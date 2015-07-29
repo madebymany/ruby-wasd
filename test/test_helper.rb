@@ -15,9 +15,11 @@ class Test::Unit::TestCase
       {err: :close})
     sleep 0.1
 
-    yield
-
-    Process.kill Signal.list["INT"], pid
-    Process.wait pid
+    begin
+      yield
+    ensure
+      Process.kill Signal.list["INT"], pid
+      Process.wait pid
+    end
   end
 end
