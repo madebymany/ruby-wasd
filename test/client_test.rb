@@ -3,7 +3,7 @@ require_relative 'test_helper'
 class ClientTest < Test::Unit::TestCase
   def setup
     @client = Wasd::Client.new(
-      domain: "example.com",
+      domain: "wasd.test",
       resolver_config: {nameserver_port: [["127.0.0.1", 53534]]}
     )
     @service = @client.service(name: "test")
@@ -22,7 +22,7 @@ class ClientTest < Test::Unit::TestCase
   def test_instance_resolution
     instance = Wasd::Instance.new(@service, "Woop")
     expected = Wasd::ResolvedInstance.new(
-      instance, [Wasd::Endpoint.new("woop.example.com", 49153, 0)],
+      instance, [Wasd::Endpoint.new("woop.wasd.test", 49153, 0)],
       {1 => {"hello" => "there", "this" => "is=fun"},
        2 => {"second" => "version", "gosh" => "wow"}})
 
@@ -33,7 +33,7 @@ class ClientTest < Test::Unit::TestCase
 
   def test_service_resolution
     expected = Wasd::ResolvedService.new(@service, [
-      Wasd::Endpoint.new("onlyone.example.com", 8001, 0)
+      Wasd::Endpoint.new("onlyone.wasd.test", 8001, 0)
     ])
 
     with_test_dns_server do
@@ -70,9 +70,9 @@ class ClientTest < Test::Unit::TestCase
 
   def test_endpoint_http_uri
     tests = [
-      [Wasd::Endpoint.new('example.com', 443), URI("https://example.com")],
-      [Wasd::Endpoint.new('example.com', 80), URI("http://example.com")],
-      [Wasd::Endpoint.new('example.com', 3000), URI("http://example.com:3000")],
+      [Wasd::Endpoint.new('wasd.test', 443), URI("https://wasd.test")],
+      [Wasd::Endpoint.new('wasd.test', 80), URI("http://wasd.test")],
+      [Wasd::Endpoint.new('wasd.test', 3000), URI("http://wasd.test:3000")],
     ]
 
     tests.each do |endpoint, uri|
@@ -80,9 +80,9 @@ class ClientTest < Test::Unit::TestCase
     end
 
     tests = [
-      [Wasd::Endpoint.new('example.com', 443), URI("https://example.com")],
-      [Wasd::Endpoint.new('example.com', 80), URI("http://example.com")],
-      [Wasd::Endpoint.new('example.com', 3000), URI("https://example.com:3000")],
+      [Wasd::Endpoint.new('wasd.test', 443), URI("https://wasd.test")],
+      [Wasd::Endpoint.new('wasd.test', 80), URI("http://wasd.test")],
+      [Wasd::Endpoint.new('wasd.test', 3000), URI("https://wasd.test:3000")],
     ]
 
     tests.each do |endpoint, uri|
