@@ -47,8 +47,12 @@ class ClientTest < Test::Unit::TestCase
     ]
 
     with_test_dns_server do
-      assert_equal expected, @client.service_instances(name: 'test',
-                                                       subtype: 'cheese')
+      instances = @client.service_instances(name: 'test', subtype: 'cheese')
+      assert_equal expected, instances
+
+      endpoints = instances.first.resolve.endpoints
+      assert_equal 1, endpoints.size
+      assert_equal "woop.wasd.test", endpoints.first.host
     end
   end
 
