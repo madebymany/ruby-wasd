@@ -19,7 +19,8 @@ module Wasd
       @domain = domain
       @resolver = Resolv::DNS.new(resolver_config)
     end
-
+    
+    # this gets a "service" object by a direct SRV record match, not using DNS-SD through PTR resolution
     def service(subtype: nil, name: nil, protocol: "tcp", domain: nil)
       domain ||= @domain or raise "no domain given"
       raise "no service name given" unless name
